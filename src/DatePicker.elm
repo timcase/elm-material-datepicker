@@ -1,21 +1,22 @@
-module DatePicker exposing (Model, Msg, init, update, view, selectedDate)
+module DatePicker exposing (init, Model, Msg, update, view, selectedDate)
 
 {-|
 
 @docs init, Model, Msg, update, view, selectedDate
+
 -}
 
-import Html exposing (..)
-import Html.Events exposing (onClick)
-import Html.Attributes exposing (..)
-import Svg
-import Svg.Attributes
-import Date exposing (Date, dayOfWeek, day, month, year)
-import Date.Extra.Core exposing (intToMonth, daysInMonth, toFirstOfMonth, isoDayOfWeek)
-import Date.Extra.Format as DateFormat
+import Date exposing (Date, day, dayOfWeek, month, year)
+import Date.Extra.Config.Config_en_au exposing (config)
+import Date.Extra.Core exposing (daysInMonth, intToMonth, isoDayOfWeek, toFirstOfMonth)
 import Date.Extra.Duration as Duration
 import Date.Extra.Field as Field
-import Date.Extra.Config.Config_en_au exposing (config)
+import Date.Extra.Format as DateFormat
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
+import Svg
+import Svg.Attributes
 
 
 {-| -}
@@ -45,12 +46,12 @@ selectedDate model =
 
 formattedDay : Model -> String
 formattedDay model =
-    (DateFormat.format config "%a, %b %-d") model.date
+    DateFormat.format config "%a, %b %-d" model.date
 
 
 formattedMonth : Model -> String
 formattedMonth model =
-    (DateFormat.format config "%B %Y") <| model.date
+    DateFormat.format config "%B %Y" <| model.date
 
 
 {-| -}
@@ -84,7 +85,7 @@ update msg model =
             { model | date = Duration.add Duration.Month 1 model.date }
 
         SelectYear year ->
-            case (Field.fieldToDate (Field.Year year) model.date) of
+            case Field.fieldToDate (Field.Year year) model.date of
                 Just date ->
                     { model
                         | date = date
@@ -95,7 +96,7 @@ update msg model =
                     model
 
         SelectDay day ->
-            case (Field.fieldToDate (Field.DayOfMonth day) model.date) of
+            case Field.fieldToDate (Field.DayOfMonth day) model.date of
                 Just date ->
                     { model | date = date }
 
@@ -110,13 +111,14 @@ view model =
         content =
             if model.selectingYear then
                 yearPicker model
+
             else
                 picker model
     in
-        div [ Html.Attributes.class "date-picker" ]
-            [ header model
-            , content
-            ]
+    div [ Html.Attributes.class "date-picker" ]
+        [ header model
+        , content
+        ]
 
 
 header : Model -> Html Msg
@@ -125,20 +127,21 @@ header model =
         ( dayClass, yearClass ) =
             if model.selectingYear then
                 ( "day", "year selected" )
+
             else
                 ( "day selected", "year" )
     in
-        div
-            [ Html.Attributes.class "header"
-            , Html.Attributes.style [ ( "background-color", model.mainColor ) ]
+    div
+        [ Html.Attributes.class "header"
+        , Html.Attributes.style "background-color" model.mainColor
+        ]
+        [ div [ Html.Attributes.class yearClass, onClick YearSelection ]
+            [ Html.text <| toString <| year model.date
             ]
-            [ div [ Html.Attributes.class yearClass, onClick YearSelection ]
-                [ Html.text <| toString <| year model.date
-                ]
-            , div [ Html.Attributes.class dayClass, onClick DaySelection ]
-                [ Html.text <| formattedDay model
-                ]
+        , div [ Html.Attributes.class dayClass, onClick DaySelection ]
+            [ Html.text <| formattedDay model
             ]
+        ]
 
 
 weekDays : Html Msg
@@ -147,8 +150,8 @@ weekDays =
         days =
             List.map (\day -> span [] [ Html.text day ]) [ "M", "T", "W", "T", "F", "S", "S" ]
     in
-        div [ Html.Attributes.class "week-days" ]
-            days
+    div [ Html.Attributes.class "week-days" ]
+        days
 
 
 monthDays : Model -> Html Msg
@@ -164,7 +167,7 @@ monthDays model =
             weekDay - 1
 
         rightPadding =
-            (7 - ((daysCount + leftPadding) % 7)) % 7
+            modBy 7 (7 - (modBy 7 (daysCount + leftPadding)))
 
         weeks =
             chunks 7 (List.repeat leftPadding 0 ++ List.range 1 daysCount ++ List.repeat rightPadding 0)
@@ -172,10 +175,10 @@ monthDays model =
         rows =
             List.map (\week -> weekRow week (day model.date) model.mainColor) weeks
     in
-        div [ Html.Attributes.class "month-days" ]
-            [ div [ Html.Attributes.class "day-rows" ]
-                rows
-            ]
+    div [ Html.Attributes.class "month-days" ]
+        [ div [ Html.Attributes.class "day-rows" ]
+            rows
+        ]
 
 
 weekRow : List Int -> Int -> String -> Html Msg
@@ -191,18 +194,20 @@ dayCell dayNumber currentDay mainColor =
             backgroundClass =
                 if dayNumber == currentDay then
                     "day-background selected"
+
                 else
                     "day-background"
         in
-            button
-                [ Html.Attributes.class "day", onClick <| SelectDay dayNumber ]
-                [ div
-                    [ Html.Attributes.class backgroundClass
-                    , Html.Attributes.style [ ( "background-color", mainColor ) ]
-                    ]
-                    []
-                , span [ Html.Attributes.class "day-number" ] [ Html.text (toString dayNumber) ]
+        button
+            [ Html.Attributes.class "day", onClick <| SelectDay dayNumber ]
+            [ div
+                [ Html.Attributes.class backgroundClass
+                , Html.Attributes.style "background-color" mainColor
                 ]
+                []
+            , span [ Html.Attributes.class "day-number" ] [ Html.text (toString dayNumber) ]
+            ]
+
     else
         div [ Html.Attributes.class "empty-day" ] []
 
@@ -242,12 +247,12 @@ yearPicker model =
         yearButtons =
             List.map (\y -> yearButton y (year model.date)) <| List.range 1917 2117
     in
-        div [ Html.Attributes.class "year-picker" ]
-            [ div [ Html.Attributes.class "year-list-wrapper" ]
-                [ div [ Html.Attributes.class "year-list" ]
-                    yearButtons
-                ]
+    div [ Html.Attributes.class "year-picker" ]
+        [ div [ Html.Attributes.class "year-list-wrapper" ]
+            [ div [ Html.Attributes.class "year-list" ]
+                yearButtons
             ]
+        ]
 
 
 yearButton : Int -> Int -> Html Msg
@@ -256,18 +261,20 @@ yearButton year currentYear =
         spanClass =
             if year == currentYear then
                 "selected"
+
             else
                 ""
     in
-        button [ Html.Attributes.class "year", onClick <| SelectYear year ]
-            [ span [ Html.Attributes.class spanClass ]
-                [ text <| toString year ]
-            ]
+    button [ Html.Attributes.class "year", onClick <| SelectYear year ]
+        [ span [ Html.Attributes.class spanClass ]
+            [ text <| toString year ]
+        ]
 
 
 chunks : Int -> List a -> List (List a)
 chunks k xs =
-    if (List.length xs) > k then
+    if List.length xs > k then
         List.take k xs :: chunks k (List.drop k xs)
+
     else
         [ xs ]
