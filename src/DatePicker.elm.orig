@@ -6,22 +6,22 @@ module DatePicker exposing (init, Model, Msg, update, view, selectedDate)
 
 -}
 
--- import Date.Extra.Core exposing (daysInMonth, intToMonth, isoDayOfWeek, toFirstOfMonth)
--- import Date.Extra.Duration as Duration
--- import Date.Extra.Field as Field
--- import Date.Extra.Format as DateFormat
-
+import Date exposing (Date, day, dayOfWeek, month, year)
+import Date.Extra.Config.Config_en_au exposing (config)
+import Date.Extra.Core exposing (daysInMonth, intToMonth, isoDayOfWeek, toFirstOfMonth)
+import Date.Extra.Duration as Duration
+import Date.Extra.Field as Field
+import Date.Extra.Format as DateFormat
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Svg
 import Svg.Attributes
-import Time exposing (Posix)
 
 
 {-| -}
 type alias Model =
-    { date : Posix
+    { date : Date
     , selectingYear : Bool
     , mainColor : String
     }
@@ -29,7 +29,7 @@ type alias Model =
 
 {-| Pass date picker settings and get initial time picker model
 -}
-init : Posix -> String -> Model
+init : Date -> String -> Model
 init date mainColor =
     { date = date
     , selectingYear = False
@@ -39,23 +39,19 @@ init date mainColor =
 
 {-| Returns currentyl selected date
 -}
-selectedDate : Model -> Posix
+selectedDate : Model -> Date
 selectedDate model =
     model.date
 
 
 formattedDay : Model -> String
 formattedDay model =
-    "formattedDay"
-
-
-
--- DateFormat.format config "%a, %b %-d" model.date
+    DateFormat.format config "%a, %b %-d" model.date
 
 
 formattedMonth : Model -> String
 formattedMonth model =
-    "formatted Month"
+    DateFormat.format config "%B %Y" <| model.date
 
 
 {-| -}
@@ -83,34 +79,29 @@ update msg model =
             { model | selectingYear = False }
 
         PrevMonth ->
-            model
+            { model | date = Duration.add Duration.Month -1 model.date }
 
-        -- { model | date = Duration.add Duration.Month -1 model.date }
         NextMonth ->
-            model
+            { model | date = Duration.add Duration.Month 1 model.date }
 
-        -- { model | date = Duration.add Duration.Month 1 model.date }
         SelectYear year ->
-            model
+            case Field.fieldToDate (Field.Year year) model.date of
+                Just date ->
+                    { model
+                        | date = date
+                        , selectingYear = False
+                    }
 
-        -- case Field.fieldToDate (Field.Year year) model.date of
-        --     Just date ->
-        --         { model
-        --             | date = date
-        --             , selectingYear = False
-        --         }
-        --     Nothing ->
-        --         model
+                Nothing ->
+                    model
+
         SelectDay day ->
-            model
+            case Field.fieldToDate (Field.DayOfMonth day) model.date of
+                Just date ->
+                    { model | date = date }
 
-
-
--- case Field.fieldToDate (Field.DayOfMonth day) model.date of
---     Just date ->
---         { model | date = date }
---     Nothing ->
---         model
+                Nothing ->
+                    model
 
 
 {-| -}
@@ -145,7 +136,7 @@ header model =
         , Html.Attributes.style "background-color" model.mainColor
         ]
         [ div [ Html.Attributes.class yearClass, onClick YearSelection ]
-            [ Html.text "3048"
+            [ Html.text <| toString <| year model.date
             ]
         , div [ Html.Attributes.class dayClass, onClick DaySelection ]
             [ Html.text <| formattedDay model
@@ -166,20 +157,23 @@ weekDays =
 monthDays : Model -> Html Msg
 monthDays model =
     let
-        -- daysCount =
-        --     daysInMonth (year model.date) (month model.date)
-        -- weekDay =
-        --     isoDayOfWeek <| dayOfWeek <| toFirstOfMonth <| model.date
-        -- leftPadding =
-        --     weekDay - 1
-        -- rightPadding =
-        --     modBy 7 (7 - modBy 7 (daysCount + leftPadding))
-        -- weeks =
-        --     chunks 7 (List.repeat leftPadding 0 ++ List.range 1 daysCount ++ List.repeat rightPadding 0)
-        -- rows =
-        --     List.map (\week -> weekRow week (day model.date) model.mainColor) weeks
+        daysCount =
+            daysInMonth (year model.date) (month model.date)
+
+        weekDay =
+            isoDayOfWeek <| dayOfWeek <| toFirstOfMonth <| model.date
+
+        leftPadding =
+            weekDay - 1
+
+        rightPadding =
+            modBy 7 (7 - (modBy 7 (daysCount + leftPadding)))
+
+        weeks =
+            chunks 7 (List.repeat leftPadding 0 ++ List.range 1 daysCount ++ List.repeat rightPadding 0)
+
         rows =
-            [ text "rows" ]
+            List.map (\week -> weekRow week (day model.date) model.mainColor) weeks
     in
     div [ Html.Attributes.class "month-days" ]
         [ div [ Html.Attributes.class "day-rows" ]
@@ -211,7 +205,7 @@ dayCell dayNumber currentDay mainColor =
                 , Html.Attributes.style "background-color" mainColor
                 ]
                 []
-            , span [ Html.Attributes.class "day-number" ] [ Html.text "daynumber" ]
+            , span [ Html.Attributes.class "day-number" ] [ Html.text (toString dayNumber) ]
             ]
 
     else
@@ -251,10 +245,7 @@ yearPicker : Model -> Html Msg
 yearPicker model =
     let
         yearButtons =
-            [ text "yearbuttons" ]
-
-        -- yearButtons =
-        --     List.map (\y -> yearButton y (year model.date)) <| List.range 1917 2117
+            List.map (\y -> yearButton y (year model.date)) <| List.range 1917 2117
     in
     div [ Html.Attributes.class "year-picker" ]
         [ div [ Html.Attributes.class "year-list-wrapper" ]
@@ -276,7 +267,7 @@ yearButton year currentYear =
     in
     button [ Html.Attributes.class "year", onClick <| SelectYear year ]
         [ span [ Html.Attributes.class spanClass ]
-            [ text "yearButton" ]
+            [ text <| toString year ]
         ]
 
 
