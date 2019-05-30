@@ -46,6 +46,7 @@ selectedDate model =
 
 formattedDay : Model -> String
 formattedDay model =
+    -- Timestamp.formatAbbrDayAbbrMonthDay utc model.date
     "formattedDay"
 
 
@@ -55,6 +56,7 @@ formattedDay model =
 
 formattedMonth : Model -> String
 formattedMonth model =
+    -- Timestamp.formatMonthYear utc model.date
     "formatted Month"
 
 
