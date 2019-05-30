@@ -3,10 +3,15 @@ module Timestamp exposing (format)
 import Time exposing (Month(..))
 
 
-format : Time.Zone -> Time.Posix -> String
-format zone time =
+type MonthAbbrLength
+    = Short
+    | Long
+
+
+formatMonth : Time.Zone -> Time.Posix -> MonthAbbrLength -> String
+formatMonth zone time monthAbbrLength =
     let
-        month =
+        longMonth =
             case Time.toMonth zone time of
                 Jan ->
                     "January"
@@ -43,6 +48,23 @@ format zone time =
 
                 Dec ->
                     "December"
+
+        shortMonth =
+            String.left 3 longMonth
+    in
+    case monthAbbrLength of
+        Long ->
+            longMonth
+
+        Short ->
+            shortMonth
+
+
+format : Time.Zone -> Time.Posix -> String
+format zone time =
+    let
+        month =
+            formatMonth zone time Long
 
         day =
             String.fromInt (Time.toDay zone time)
