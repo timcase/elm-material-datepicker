@@ -16,12 +16,14 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Svg
 import Svg.Attributes
-import Time exposing (Posix)
+import Timestamp
+import Time exposing (Posix, Zone)
 
 
 {-| -}
 type alias Model =
-    { date : Posix
+    { zone : Zone
+    , date : Posix
     , selectingYear : Bool
     , mainColor : String
     }
@@ -29,9 +31,10 @@ type alias Model =
 
 {-| Pass date picker settings and get initial time picker model
 -}
-init : Posix -> String -> Model
-init date mainColor =
-    { date = date
+init : Zone -> Posix -> String -> Model
+init zone date mainColor =
+    { zone = zone
+    , date = date
     , selectingYear = False
     , mainColor = mainColor
     }
@@ -44,20 +47,18 @@ selectedDate model =
     model.date
 
 
-formattedDay : Model -> String
-formattedDay model =
-    -- Timestamp.formatAbbrDayAbbrMonthDay utc model.date
-    "formattedDay"
+formattedDay : Time.Zone -> Time.Posix -> String
+formattedDay zone time =
+    Timestamp.formattedDay zone time
 
 
 
 -- DateFormat.format config "%a, %b %-d" model.date
 
 
-formattedMonth : Model -> String
-formattedMonth model =
-    -- Timestamp.formatMonthYear utc model.date
-    "formatted Month"
+formattedMonth : Time.Zone -> Time.Posix  -> String
+formattedMonth zone time =
+    Timestamp.formattedMonth zone time
 
 
 {-| -}
@@ -150,7 +151,7 @@ header model =
             [ Html.text "3048"
             ]
         , div [ Html.Attributes.class dayClass, onClick DaySelection ]
-            [ Html.text <| formattedDay model
+            [ Html.text <| formattedDay model.zone model.date
             ]
         ]
 
@@ -233,7 +234,7 @@ picker model =
                     ]
                 ]
             , div [ Html.Attributes.class "month-year" ]
-                [ Html.text <| formattedMonth model
+                [ Html.text <| formattedMonth model.zone model.date
                 ]
             , button [ Html.Attributes.class "navigation-wrapper", onClick NextMonth ]
                 [ Svg.svg

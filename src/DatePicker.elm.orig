@@ -47,12 +47,15 @@ selectedDate model =
 formattedDay : Model -> String
 formattedDay model =
     DateFormat.format config "%a, %b %-d" model.date
-
+-- %a abbreviated day of week Sun, Mon, Tue
+-- %b abbreviated month  Jan, Feb, Mar
+-- %-d no padded day (1..31)
 
 formattedMonth : Model -> String
 formattedMonth model =
     DateFormat.format config "%B %Y" <| model.date
-
+-- %B Fulll month January
+-- %Y Year 2019
 
 {-| -}
 type Msg

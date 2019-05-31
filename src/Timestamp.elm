@@ -1,15 +1,15 @@
-module Timestamp exposing (format)
+module Timestamp exposing (formattedDay, formattedMonth)
 
 import Time exposing (Month(..), Weekday(..))
 
 
-type WordLength
-    = Short
-    | Long
+type Abbreviation
+    = Abbreviated
+    | NotAbbreviated
 
 
-formatMonth : Time.Zone -> Time.Posix -> WordLength -> String
-formatMonth zone time wordLength =
+formatMonth : Time.Zone -> Time.Posix -> Abbreviation -> String
+formatMonth zone time abbreviation =
     let
         longMonth =
             case Time.toMonth zone time of
@@ -52,59 +52,47 @@ formatMonth zone time wordLength =
         shortMonth =
             String.left 3 longMonth
     in
-    case wordLength of
-        Long ->
+    case abbreviation of
+        NotAbbreviated ->
             longMonth
 
-        Short ->
+        Abbreviated ->
             shortMonth
 
 
-formatDayOfWeek : Time.Zone -> Time.Posix -> WordLength -> String
-formatDayOfWeek zone time wordLength =
-    let
-        longDayOfWeek =
-            case Time.toWeekday zone time of
-                Mon ->
-                    "Monday"
+formatDayOfWeek : Time.Zone -> Time.Posix -> String
+formatDayOfWeek zone time =
+    case Time.toWeekday zone time of
+        Mon ->
+            "Mon"
 
-                Tue ->
-                    "Tuesday"
+        Tue ->
+            "Tue"
 
-                Wed ->
-                    "Wednesday"
+        Wed ->
+            "Wed"
 
-                Thu ->
-                    "Thursday"
+        Thu ->
+            "Thu"
 
-                Fri ->
-                    "Friday"
+        Fri ->
+            "Fri"
 
-                Sat ->
-                    "Saturday"
+        Sat ->
+            "Sat"
 
-                Sun ->
-                    "Sunday"
-
-        shortDayOfWeek =
-            String.left 3 longDayOfWeek
-    in
-    case wordLength of
-        Long ->
-            longDayOfWeek
-
-        Short ->
-            shortDayOfWeek
+        Sun ->
+            "Sun"
 
 
-format : Time.Zone -> Time.Posix -> String
-format zone time =
+formattedMonth : Time.Zone -> Time.Posix -> String
+formattedMonth zone time =
     let
         month =
-            formatMonth zone time Long
+            formatMonth zone time NotAbbreviated
 
         dayOfWeek =
-            formatDayOfWeek zone time Short
+            formatDayOfWeek zone time
 
         day =
             String.fromInt (Time.toDay zone time)
@@ -113,3 +101,17 @@ format zone time =
             String.fromInt (Time.toYear zone time)
     in
     dayOfWeek ++ " " ++ month ++ " " ++ day ++ ", " ++ year
+
+formattedDay : Time.Zone -> Time.Posix -> String
+formattedDay zone time =
+    let
+        month =
+            formatMonth zone time Abbreviated
+
+        dayOfWeek =
+            formatDayOfWeek zone time
+
+        day =
+            String.fromInt (Time.toDay zone time)
+    in
+    dayOfWeek ++ ", " ++ month ++ " " ++ day
