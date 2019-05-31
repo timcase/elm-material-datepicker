@@ -18,7 +18,7 @@ import Svg
 import Svg.Attributes
 import Timestamp
 import Time exposing (Posix, Zone)
-
+import Derberos.Date.Delta as Delta
 
 {-| -}
 type alias Model =
@@ -86,13 +86,9 @@ update msg model =
             { model | selectingYear = False }
 
         PrevMonth ->
-            model
-
-        -- { model | date = Duration.add Duration.Month -1 model.date }
+            { model | date = Delta.addMonths -1 model.zone model.date }
         NextMonth ->
-            model
-
-        -- { model | date = Duration.add Duration.Month 1 model.date }
+            { model | date = Delta.addMonths 1 model.zone model.date }
         SelectYear year ->
             model
 
