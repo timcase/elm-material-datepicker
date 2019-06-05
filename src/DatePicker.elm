@@ -19,6 +19,7 @@ import Svg.Attributes
 import Timestamp
 import Time exposing (Posix, Zone)
 import Derberos.Date.Delta as Delta
+import Field
 
 {-| -}
 type alias Model =
@@ -51,9 +52,6 @@ formattedDay : Time.Zone -> Time.Posix -> String
 formattedDay zone time =
     Timestamp.formattedDay zone time
 
-
-
--- DateFormat.format config "%a, %b %-d" model.date
 
 
 formattedMonth : Time.Zone -> Time.Posix  -> String
@@ -90,26 +88,20 @@ update msg model =
         NextMonth ->
             { model | date = Delta.addMonths 1 model.zone model.date }
         SelectYear year ->
-            model
-
-        -- case Field.fieldToDate (Field.Year year) model.date of
-        --     Just date ->
-        --         { model
-        --             | date = date
-        --             , selectingYear = False
-        --         }
-        --     Nothing ->
-        --         model
+            case Field.fieldToDate (Field.Year year) model.date of
+                Just date ->
+                    { model
+                        | date = date
+                        , selectingYear = False
+                    }
+                Nothing ->
+                    model
         SelectDay day ->
-            model
-
-
-
--- case Field.fieldToDate (Field.DayOfMonth day) model.date of
---     Just date ->
---         { model | date = date }
---     Nothing ->
---         model
+            case Field.fieldToDate (Field.DayOfMonth day) model.date of
+                Just date ->
+                    { model | date = date }
+                Nothing ->
+                    model
 
 
 {-| -}

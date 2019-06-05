@@ -1,4 +1,4 @@
-module Date.Extra.Field
+module Field
     exposing
         ( fieldToDate
         , Field(..)
@@ -17,6 +17,7 @@ Copyright (c) 2016-2018 Robin Luiten
 -- import Date exposing (Date, Day, Month)
 -- import Date.Extra.Core as Core
 import Derberos.Date.Delta as Delta
+import Derberos.Date.Utils as Utils
 import Time exposing (Zone, Posix)
 
 
@@ -53,104 +54,26 @@ Valid ranges
   - Year >= 0
 
 -}
-fieldToDate : Field -> Date -> Maybe Date
+fieldToDate : Field -> Posix -> Maybe Posix
 fieldToDate field date =
     case field of
         DayOfMonth day ->
             let
+                year =
+                    Time.toYear Time.utc date
+                month =
+                    Time.toMonth Time.utc date
+
                 maxDays =
-                    Core.daysInMonthDate date
+                    Utils.numberOfDaysInMonth year month
             in
                 if day < 1 || day > maxDays then
                     Nothing
                 else
-                    Just <| Duration.add Duration.Day (day - Date.day date) date
+                    Just <| Delta.addDays (day - (Time.toDay Time.utc date)) date
 
         Year year ->
             if year < 0 then
                 Nothing
             else
-                Just <| Duration.add Duration.Year (year - (Date.year date)) date
-
-
-monthToDate month date =
-    let
-        targetMonthInt =
-            Core.monthToInt month
-
-        monthInt =
-            Core.monthToInt (Date.month date)
-    in
-        Duration.add Duration.Month (targetMonthInt - monthInt) date
-
-
-dayOfWeekToDate newDayOfWeek startOfWeekDay date =
-    let
-        dayOfWeek =
-            Date.dayOfWeek date
-
-        daysToStartOfWeek =
-            Core.daysBackToStartOfWeek dayOfWeek startOfWeekDay
-
-        targetIsoDay =
-            Core.isoDayOfWeek newDayOfWeek
-
-        isoDay =
-            Core.isoDayOfWeek dayOfWeek
-
-        dayDiff =
-            targetIsoDay - isoDay
-
-        -- _ = Debug.log("dayOfWeekToDate") (daysToStartOfWeek, dayDiff)
-        adjustedDiff =
-            if (daysToStartOfWeek + dayDiff) < 0 then
-                dayDiff + 7
-            else
-                dayDiff
-    in
-        Duration.add Duration.Day adjustedDiff date
-
-
-{-| Set a field on a date to a specific value.
-
-This version clamps any input Field values to valid ranges as
-described in the doc for fieldToDate function.
-
--}
-fieldToDateClamp : Field -> Date -> Date
-fieldToDateClamp field date =
-    case field of
-        Millisecond millisecond ->
-            Duration.add Duration.Millisecond (clamp 0 999 millisecond - Date.millisecond date) date
-
-        Second second ->
-            Duration.add Duration.Second (clamp 0 59 second - Date.second date) date
-
-        Minute minute ->
-            Duration.add Duration.Minute (clamp 0 59 minute - Date.minute date) date
-
-        Hour hour ->
-            Duration.add Duration.Hour (clamp 0 23 hour - Date.hour date) date
-
-        DayOfWeek ( newDayOfWeek, startOfWeekDay ) ->
-            dayOfWeekToDate newDayOfWeek startOfWeekDay date
-
-        DayOfMonth day ->
-            let
-                maxDays =
-                    Core.daysInMonthDate date
-            in
-                Duration.add Duration.Day (clamp 1 maxDays day - Date.day date) date
-
-        Month month ->
-            monthToDate month date
-
-        Year year ->
-            let
-                minYear =
-                    if year < 0 then
-                        0
-                    else
-                        year
-            in
-                Duration.add Duration.Year (minYear - (Date.year date)) date
+                Just <| Delta.addYears (year - (Time.toYear Time.utc  date)) date
