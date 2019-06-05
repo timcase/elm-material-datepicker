@@ -19,6 +19,8 @@ import Svg.Attributes
 import Timestamp
 import Time exposing (Posix, Zone)
 import Derberos.Date.Delta as Delta
+import Derberos.Date.Utils as Utils
+import Derberos.Date.Calendar as Calendar
 import Field
 
 {-| -}
@@ -157,20 +159,23 @@ weekDays =
 monthDays : Model -> Html Msg
 monthDays model =
     let
-        -- daysCount =
-        --     daysInMonth (year model.date) (month model.date)
-        -- weekDay =
-        --     isoDayOfWeek <| dayOfWeek <| toFirstOfMonth <| model.date
-        -- leftPadding =
-        --     weekDay - 1
-        -- rightPadding =
-        --     modBy 7 (7 - modBy 7 (daysCount + leftPadding))
-        -- weeks =
-        --     chunks 7 (List.repeat leftPadding 0 ++ List.range 1 daysCount ++ List.repeat rightPadding 0)
-        -- rows =
-        --     List.map (\week -> weekRow week (day model.date) model.mainColor) weeks
+        year = Time.toYear model.zone model.date
+
+        month = Time.toMonth model.zone model.date
+
+        daysCount =
+                    Utils.numberOfDaysInMonth year month
+        weekDay =
+            (+) 1 <| Utils.weekdayToNumber <| Utils.getWeekday model.zone <| Calendar.getFirstDayOfMonth model.zone <| model.date
+
+        leftPadding =
+            weekDay - 1
+        rightPadding =
+            modBy 7 (7 - modBy 7 (daysCount + leftPadding))
+        weeks =
+            chunks 7 (List.repeat leftPadding 0 ++ List.range 1 daysCount ++ List.repeat rightPadding 0)
         rows =
-            [ text "rows" ]
+            List.map (\week -> weekRow week (Time.toDay model.zone model.date) model.mainColor) weeks
     in
     div [ Html.Attributes.class "month-days" ]
         [ div [ Html.Attributes.class "day-rows" ]
@@ -241,11 +246,9 @@ picker model =
 yearPicker : Model -> Html Msg
 yearPicker model =
     let
-        yearButtons =
-            [ text "yearbuttons" ]
 
-        -- yearButtons =
-        --     List.map (\y -> yearButton y (year model.date)) <| List.range 1917 2117
+        yearButtons =
+            List.map (\y -> yearButton y (Time.toYear model.zone model.date)) <| List.range 1917 2117
     in
     div [ Html.Attributes.class "year-picker" ]
         [ div [ Html.Attributes.class "year-list-wrapper" ]
