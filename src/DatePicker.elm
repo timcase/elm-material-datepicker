@@ -11,17 +11,18 @@ module DatePicker exposing (init, Model, Msg, update, view, selectedDate)
 -- import Date.Extra.Field as Field
 -- import Date.Extra.Format as DateFormat
 
+import Derberos.Date.Calendar as Calendar
+import Derberos.Date.Delta as Delta
+import Derberos.Date.Utils as Utils
+import Field
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Svg
 import Svg.Attributes
-import Timestamp
 import Time exposing (Posix, Zone)
-import Derberos.Date.Delta as Delta
-import Derberos.Date.Utils as Utils
-import Derberos.Date.Calendar as Calendar
-import Field
+import Timestamp
+
 
 {-| -}
 type alias Model =
@@ -55,8 +56,7 @@ formattedDay zone time =
     Timestamp.formattedDay zone time
 
 
-
-formattedMonth : Time.Zone -> Time.Posix  -> String
+formattedMonth : Time.Zone -> Time.Posix -> String
 formattedMonth zone time =
     Timestamp.formattedMonth zone time
 
@@ -87,8 +87,10 @@ update msg model =
 
         PrevMonth ->
             { model | date = Delta.addMonths -1 model.zone model.date }
+
         NextMonth ->
             { model | date = Delta.addMonths 1 model.zone model.date }
+
         SelectYear year ->
             case Field.fieldToDate (Field.Year year) model.date of
                 Just date ->
@@ -96,12 +98,15 @@ update msg model =
                         | date = date
                         , selectingYear = False
                     }
+
                 Nothing ->
                     model
+
         SelectDay day ->
             case Field.fieldToDate (Field.DayOfMonth day) model.date of
                 Just date ->
                     { model | date = date }
+
                 Nothing ->
                     model
 
@@ -138,7 +143,7 @@ header model =
         , Html.Attributes.style "background-color" model.mainColor
         ]
         [ div [ Html.Attributes.class yearClass, onClick YearSelection ]
-            [ Html.text "3048"
+            [ Html.text <| String.fromInt <| Time.toYear model.zone model.date
             ]
         , div [ Html.Attributes.class dayClass, onClick DaySelection ]
             [ Html.text <| formattedDay model.zone model.date
@@ -159,21 +164,27 @@ weekDays =
 monthDays : Model -> Html Msg
 monthDays model =
     let
-        year = Time.toYear model.zone model.date
+        year =
+            Time.toYear model.zone model.date
 
-        month = Time.toMonth model.zone model.date
+        month =
+            Time.toMonth model.zone model.date
 
         daysCount =
-                    Utils.numberOfDaysInMonth year month
+            Utils.numberOfDaysInMonth year month
+
         weekDay =
             (+) 1 <| Utils.weekdayToNumber <| Utils.getWeekday model.zone <| Calendar.getFirstDayOfMonth model.zone <| model.date
 
         leftPadding =
             weekDay - 1
+
         rightPadding =
             modBy 7 (7 - modBy 7 (daysCount + leftPadding))
+
         weeks =
             chunks 7 (List.repeat leftPadding 0 ++ List.range 1 daysCount ++ List.repeat rightPadding 0)
+
         rows =
             List.map (\week -> weekRow week (Time.toDay model.zone model.date) model.mainColor) weeks
     in
@@ -207,7 +218,7 @@ dayCell dayNumber currentDay mainColor =
                 , Html.Attributes.style "background-color" mainColor
                 ]
                 []
-            , span [ Html.Attributes.class "day-number" ] [ Html.text "daynumber" ]
+            , span [ Html.Attributes.class "day-number" ] [ Html.text (String.fromInt dayNumber) ]
             ]
 
     else
@@ -246,7 +257,6 @@ picker model =
 yearPicker : Model -> Html Msg
 yearPicker model =
     let
-
         yearButtons =
             List.map (\y -> yearButton y (Time.toYear model.zone model.date)) <| List.range 1917 2117
     in

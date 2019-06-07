@@ -100,7 +100,8 @@ formattedMonth zone time =
         year =
             String.fromInt (Time.toYear zone time)
     in
-    dayOfWeek ++ " " ++ month ++ " " ++ day ++ ", " ++ year
+    month ++ " " ++ year
+
 
 formattedDay : Time.Zone -> Time.Posix -> String
 formattedDay zone time =
